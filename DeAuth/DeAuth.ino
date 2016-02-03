@@ -164,20 +164,24 @@ int register_beacon(beaconinfo beacon)
   int known = 0;   // Clear known flag
   for (int u = 0; u < aps_known_count; u++)
   {
-    if (! memcmp(aps_known[u].bssid, beacon.bssid, ETH_MAC_LEN)) {
-      known = 1;
-      break;
-    }   // AP known => Set known flag
+      if (! memcmp(aps_known[u].bssid, beacon.bssid, ETH_MAC_LEN)) {
+        known = 1;
+        break;
+      }// AP known => Set known flag
   }
   if (! known)  // AP is NEW, copy MAC to array and return it
   {
-    memcpy(&aps_known[aps_known_count], &beacon, sizeof(beacon));
-    aps_known_count++;
+    if (beacon.rssi > -75) {
+      Serial.printf("AP strong signal, caching... ");
+      Serial.printf("[%32s]" , beacon.ssid);
+      Serial.println();
+      memcpy(&aps_known[aps_known_count], &beacon, sizeof(beacon));
+      aps_known_count++;
 
-    if ((unsigned int) aps_known_count >=
-        sizeof (aps_known) / sizeof (aps_known[0]) ) {
-      Serial.printf("exceeded max aps_known\n");
-      aps_known_count = 0;
+      if ((unsigned int) aps_known_count >= sizeof (aps_known) / sizeof (aps_known[0]) ) {
+        Serial.printf("exceeded max aps_known\n");
+        aps_known_count = 0;
+      }
     }
   }
   return known;
@@ -195,13 +199,17 @@ int register_client(clientinfo ci)
   }
   if (! known)
   {
-    memcpy(&clients_known[clients_known_count], &ci, sizeof(ci));
-    clients_known_count++;
+    if (ci.rssi > -75) {
+      Serial.printf("CLIENT strong signal, caching... ");
+      Serial.printf("%02x", ci.station);
+      Serial.println();
+      memcpy(&clients_known[clients_known_count], &ci, sizeof(ci));
+      clients_known_count++;
 
-    if ((unsigned int) clients_known_count >=
-        sizeof (clients_known) / sizeof (clients_known[0]) ) {
-      Serial.printf("exceeded max clients_known\n");
-      clients_known_count = 0;
+      if ((unsigned int) clients_known_count >= sizeof (clients_known) / sizeof (clients_known[0]) ) {
+        Serial.printf("exceeded max clients_known\n");
+        clients_known_count = 0;
+      }
     }
   }
   return known;
