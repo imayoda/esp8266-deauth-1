@@ -11,6 +11,10 @@ extern "C" {
 #define ETH_MAC_LEN 6
 #define MAX_APS_TRACKED 100
 #define MAX_CLIENTS_TRACKED 200
+#define MIN_AP_SIGNAL -85 // Minimum signal required for beacons 
+#define MIN_CLIENT_SIGNAL -75 // Minimum signal required for clients
+#define CACHED_AP_CLIENTS_FLUSH_COUNTER 100 // Counter before cached stations are flushed
+#define MAX_CH_NUMBER 12 // Domanin maximum channels(+1); eg. Europe = 12
 
 // Channel to perform deauth
 uint8_t channel = 0;
@@ -171,7 +175,7 @@ int register_beacon(beaconinfo beacon)
   }
   if (! known)  // AP is NEW, copy MAC to array and return it
   {
-    if (beacon.rssi > -75) {
+    if (beacon.rssi > MIN_AP_SIGNAL) {
       Serial.printf("AP strong signal, caching... ");
       Serial.printf("[%32s]" , beacon.ssid);
       Serial.println();
@@ -199,7 +203,7 @@ int register_client(clientinfo ci)
   }
   if (! known)
   {
-    if (ci.rssi > -75) {
+    if (ci.rssi > MIN_CLIENT_SIGNAL) {
       Serial.printf("CLIENT strong signal, caching... ");
       Serial.printf("%02x", ci.station);
       Serial.println();
@@ -426,8 +430,10 @@ void loop() {
         wifi_promiscuous_enable(1);
 
         channel++;
-        if (channel == 15) break;
+        if (channel == MAX_CH_NUMBER) break;
         wifi_set_channel(channel);
+        if (clearcachecounter > CACHED_AP_CLIENTS_FLUSH_COUNTER) {Serial.println("------------------------------Purging cached beacons+clients --------------------------------"); delay(100); clearcachecounter = 0; memset(aps_known, 0, sizeof aps_known); memset(clients_known, 0, sizeof clients_known); aps_known_count = 0; clients_known_count = 0;}
+        clearcachecounter++;
       }
       delay(1);
 
