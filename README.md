@@ -1,3 +1,7 @@
+# esp8266-deauth-1
+Added some functionality to improve one chip functionality.
+
+
 # esp8266-deauth
 Multi target De-Auth attack implementation for ESP8266 module.
 
