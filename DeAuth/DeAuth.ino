@@ -56,6 +56,7 @@ int aps_known_count = 0;                                  // Number of known APs
 int nothing_new = 0;
 clientinfo clients_known[MAX_CLIENTS_TRACKED];            // Array to save MACs of known CLIENTs
 int clients_known_count = 0;                              // Number of known CLIENTs
+unsigned clearcachecounter = 0;                           // Cache purge timer
 
 struct beaconinfo parse_beacon(uint8_t *frame, uint16_t framelen, signed rssi)
 {
